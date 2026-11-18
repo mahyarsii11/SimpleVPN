@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">وی‌پی‌ان ساده</string>
+    <string name="warp_connect">اتصال سریع (WARP)</string>
+    <string name="warp_disconnect">قطع اتصال WARP</string>
+    <string name="status_off">وضعیت: قطع</string>
+    <string name="status_on">وضعیت: متصل از طریق WARP</string>
+    <string name="status_connecting">وضعیت: در حال اتصال...</string>
+    <string name="vg_title">انتخاب کشور (سرورهای عمومی VPN Gate)</string>
+    <string name="vg_refresh">بروزرسانی لیست سرورها</string>
+    <string name="vg_note">با انتخاب هر کشور، بهترین سرور عمومی رایگان آن کشور گرفته می‌شود و کانفیگ آن برای اتصال به اپ رایگان «OpenVPN for Android» پاس داده می‌شود. تعداد سرورهای هر کشور به زمان و volunteers بستگی دارد.</string>
+    <string name="footer">ساخته‌شده با WireGuard و Cloudflare WARP - بدون نیاز به هیچ کانفیگی</string>
+    <string name="perm_denied">اجازه اتصال VPN داده نشد</string>
+    <string name="err_prefix">خطا: </string>
+    <string name="loading">در حال دریافت لیست سرورها...</string>
+    <string name="ovpn_ready">کانفیگ آماده شد - اتصال با اپ OpenVPN</string>
+    <string name="no_ovpn_app">اپ OpenVPN for Android نصب نیست. حالت سریع WARP را استفاده کن یا اپ OpenVPN را نصب کن.</string>
+    <string name="reg_fail">ساخت حساب WARP ناموفق بود. اینترنت را چک کن و دوباره تلاش کن.</string>
+    <string name="list_fail">دریافت لیست سرورها ناموفق بود. دوباره تلاش کن.</string>
+    <string name="list_loaded">لیست بروزرسانی شد</string>
+</resources>
