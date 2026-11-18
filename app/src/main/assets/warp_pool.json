@@ -1,0 +1,44 @@
+[
+ {
+  "privKey": "KGHPH5G91wgnYd6DHIbjIm//kgAu0L3eljgJfoJ2DWY=",
+  "v4": "172.16.0.2",
+  "v6": "2606:4700:110:8520:4053:932b:b9f0:6e1",
+  "peerPub": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+  "apiVersion": "v0i1707"
+ },
+ {
+  "privKey": "SFGRyShTeJXDkvfRCNRcX1kZFgk8sq/JU75Wr7fJnk8=",
+  "v4": "172.16.0.2",
+  "v6": "2606:4700:110:8780:99d9:405c:7d5d:e7a1",
+  "peerPub": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+  "apiVersion": "v0i1707"
+ },
+ {
+  "privKey": "QNOQQkFh7bblxXPHd6TMWXmqrsosne1C4drFu8sg9XU=",
+  "v4": "172.16.0.2",
+  "v6": "2606:4700:110:88a9:551c:a630:c4ec:9aed",
+  "peerPub": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+  "apiVersion": "v0i1707"
+ },
+ {
+  "privKey": "aHVL6BS48RrfKtXeeYbLq1y5bz7EL+3QflCF81LGkHM=",
+  "v4": "172.16.0.2",
+  "v6": "2606:4700:110:8ef7:72d7:9d56:dc27:417a",
+  "peerPub": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+  "apiVersion": "v0i1707"
+ },
+ {
+  "privKey": "2GCT9iUQmFWBrIl2hGBPMWSj3iBLHZob6T3YZEJz4n0=",
+  "v4": "172.16.0.2",
+  "v6": "2606:4700:110:8fb8:8fea:5b2f:e5a1:f186",
+  "peerPub": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+  "apiVersion": "v0i1707"
+ },
+ {
+  "privKey": "cMC0HpyPfSvwsMDYGima2hiWvn1Y784KiQIsX/fWpHY=",
+  "v4": "172.16.0.2",
+  "v6": "2606:4700:110:8faa:eeb5:c1cf:3ffb:e8e2",
+  "peerPub": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+  "apiVersion": "v0i1707"
+ }
+]

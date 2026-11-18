@@ -70,12 +70,10 @@ class VaultFragment : Fragment() {
 
         powerBtn?.setOnClickListener {
             val act = activity ?: return@setOnClickListener
-            if (controller.state == VpnController.State.DISCONNECTED) {
-                controller.connect(act)
-            } else if (controller.state == VpnController.State.CONNECTED) {
-                controller.disconnect()
-            } else {
-                Toast.makeText(act, R.string.already_working, Toast.LENGTH_SHORT).show()
+            when (controller.state) {
+                VpnController.State.DISCONNECTED -> controller.connect(act)
+                VpnController.State.CONNECTING -> controller.disconnect()
+                VpnController.State.CONNECTED -> controller.disconnect()
             }
         }
 
@@ -124,14 +122,20 @@ class VaultFragment : Fragment() {
                 badgeDot?.setBackgroundResource(R.drawable.dot_cyan)
             }
             VpnController.State.CONNECTING -> {
-                statusText?.text = getString(R.string.state_connecting)
+                val detail = controller.statusDetail
+                statusText?.text = detail ?: getString(R.string.state_connecting)
                 statusText?.setTextColor(resources.getColor(R.color.amber, requireContext().theme))
                 badgeText?.text = getString(R.string.badge_handshake)
                 badgeDot?.setBackgroundResource(R.drawable.dot_amber)
             }
             VpnController.State.DISCONNECTED -> {
-                statusText?.text = getString(R.string.state_disconnected)
-                statusText?.setTextColor(resources.getColor(R.color.text_dim, requireContext().theme))
+                if (controller.lastError != null) {
+                    statusText?.text = getString(R.string.state_failed)
+                    statusText?.setTextColor(resources.getColor(R.color.amber, requireContext().theme))
+                } else {
+                    statusText?.text = getString(R.string.state_disconnected)
+                    statusText?.setTextColor(resources.getColor(R.color.text_dim, requireContext().theme))
+                }
                 badgeText?.text = getString(R.string.badge_offline)
                 badgeDot?.setBackgroundResource(R.drawable.dot_gray)
             }
