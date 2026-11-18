@@ -31,7 +31,7 @@ object WarpManager {
     private const val UA = "1.1.1.1/6.26"
     private val API_VERSIONS = listOf("v0i1707", "v0a2158", "v0a448")
     private const val PEER_FALLBACK_KEY = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
-    private const val TIMEOUT_MS = 8000
+    private const val TIMEOUT_MS = 6000
 
     private val prefsLock = Any()
 

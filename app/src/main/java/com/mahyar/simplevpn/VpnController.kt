@@ -32,21 +32,47 @@ object VpnController {
     const val TUNNEL_NAME = "SimpleVPN"
 
     /**
-     * WARP endpoints tried in order. Anycast IPs first (no DNS lookup), then
-     * the hostname plus alternate UDP ports for networks where the default
-     * port 2408 is throttled or blocked.
+     * WARP endpoints tried in order. IP endpoints first (no DNS wait), across
+     * every known WARP address family and the alternate UDP ports — for
+     * networks where the default anycast:port pair is throttled or blocked.
+     * Hostname and IPv6 routes come last (slowest to fail). The last working
+     * route is cached and always tried first.
      */
     private val ENDPOINTS = listOf(
+        // core anycast v4, default port
         "162.159.192.1:2408",
-        "engage.cloudflareclient.com:2408",
+        "162.159.193.1:2408",
+        "162.159.195.1:2408",
+        "162.159.204.1:2408",
+        // optimized v4 ranges (often not throttled: they look like ordinary CDN IPs)
+        "188.114.96.1:2408",
+        "188.114.97.1:2408",
+        "188.114.98.1:2408",
+        "188.114.99.1:2408",
+        // core anycast, alternate WARP ports
         "162.159.192.1:500",
-        "162.159.192.1:854",
-        "162.159.192.1:8542",
+        "162.159.193.1:500",
         "162.159.192.1:4500",
+        "162.159.193.1:4500",
         "162.159.192.1:1701",
-        "162.159.193.10:2408",
+        "162.159.193.1:1701",
+        "162.159.192.1:854",
+        "162.159.193.1:854",
+        "162.159.192.1:8542",
+        "162.159.193.1:8542",
+        // optimized ranges, alternate ports
+        "188.114.96.1:500",
+        "188.114.97.1:500",
+        "188.114.96.1:4500",
+        "188.114.97.1:4500",
+        // hostname (DNS may be slow/poisoned — tried after the IPs)
+        "engage.cloudflareclient.com:2408",
         "engage.cloudflareclient.com:500",
-        "engage.cloudflareclient.com:854"
+        // IPv6 (often unfiltered on mobile data)
+        "[2606:4700:d0::a29f:c001]:2408",
+        "[2606:4700:d1::a29f:c001]:2408",
+        "[2606:4700:d0::a29f:c001]:500",
+        "[2606:4700:d1::a29f:c001]:500"
     )
 
     private const val HANDSHAKE_WAIT_MS = 6000L
@@ -71,6 +97,9 @@ object VpnController {
     @Volatile var connectEpoch: Long = 0L
         private set
     @Volatile var lastError: String? = null
+        private set
+    /** Technical reason the last route attempt failed (for diagnostics). */
+    @Volatile var lastRouteError: String? = null
         private set
 
     /** Short progress line shown while connecting (e.g. "ROUTE 2/10"). */
@@ -145,6 +174,7 @@ object VpnController {
     fun connect(activity: Activity) {
         if (state == State.CONNECTED) { disconnect(); return }
         lastError = null
+        lastRouteError = null
         cancelRequested = false
         val myRun = ++runId
         pendingPermissionRun = myRun
@@ -212,10 +242,14 @@ object VpnController {
         for ((i, ep) in list.withIndex()) {
             if (stale()) { safeDown(); return }
             setDetail(appCtx.getString(R.string.detail_route, i + 1, list.size))
+            var routeErr = ""
             try {
                 backend.setState(tunnel, Tunnel.State.DOWN, null)
                 backend.setState(tunnel, Tunnel.State.UP, WarpManager.withEndpoint(cfg, ep))
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                routeErr = e.javaClass.simpleName +
+                    (e.message?.let { m -> ": ${m.take(140)}" } ?: "")
+                lastRouteError = "[$ep] $routeErr"
                 continue // unreachable endpoint / DNS failure / service problem
             }
             if (verifyHandshake(pubKey)) {
@@ -231,6 +265,7 @@ object VpnController {
                 notifyChanged()
                 return
             }
+            lastRouteError = "[$ep] no handshake within ${HANDSHAKE_WAIT_MS / 1000}s"
             safeDown()
         }
         if (!stale()) fail(appCtx, appCtx.getString(R.string.handshake_fail))
@@ -264,7 +299,10 @@ object VpnController {
         statusDetail = null
         notifyChanged()
         ui.post {
-            Toast.makeText(appCtx, appCtx.getString(R.string.reg_fail), Toast.LENGTH_LONG).show()
+            val detail = lastRouteError
+            val text = if (detail != null) "${appCtx.getString(R.string.reg_fail)}\n\n$detail"
+                       else appCtx.getString(R.string.reg_fail)
+            Toast.makeText(appCtx, text, Toast.LENGTH_LONG).show()
         }
     }
 
