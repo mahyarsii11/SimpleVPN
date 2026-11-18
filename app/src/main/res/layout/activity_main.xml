@@ -1,85 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:background="@color/bg_main">
 
+    <!-- Top ambient glow -->
+    <View
+        android:layout_width="340dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_marginTop="-60dp"
+        android:background="@drawable/bg_glow_top" />
+
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="56dp"
+        android:layout_gravity="top"
+        android:background="@color/bg_main_alpha"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
 
         <TextView
-            android:id="@+id/title"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:paddingTop="12dp"
-            android:paddingBottom="16dp" />
+            android:fontFamily="@font/space_grotesk_700"
+            android:letterSpacing="0.12"
+            android:text="@string/app_header"
+            android:textColor="@color/text_main"
+            android:textSize="19sp" />
 
-        <Button
-            android:id="@+id/btn_warp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="22dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_pill_badge"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
+            <View
+                android:id="@+id/header_pill_dot"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/dot_cyan" />
+
+            <TextView
+                android:id="@+id/header_pill_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFamily="@font/jetbrains_mono_600"
+                android:letterSpacing="0.14"
+                android:text="@string/pill_protected"
+                android:textColor="@color/primary_light"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <FrameLayout
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_avatar">
+
+            <ImageView
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/profile"
+                android:src="@drawable/ic_person"
+                app:tint="@color/text_dim" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Fragment content -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="56dp"
+        android:layout_marginBottom="92dp" />
+
+    <!-- Bottom navigation -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:text="@string/warp_connect"
-            android:textSize="18sp" />
+            android:background="@drawable/bg_nav_bar"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/status_off"
-            android:textSize="15sp"
-            android:gravity="center"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp" />
+            <LinearLayout
+                android:id="@+id/nav_vault"
+                style="@style/NavItem">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#33888888"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp" />
+                <ImageView
+                    android:id="@android:id/icon"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_shield" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/vg_title"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:paddingBottom="8dp" />
+                <TextView
+                    android:id="@android:id/text1"
+                    style="@style/NavLabel"
+                    android:text="@string/tab_vault" />
+            </LinearLayout>
 
-        <Button
-            android:id="@+id/btn_refresh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/vg_refresh" />
+            <LinearLayout
+                android:id="@+id/nav_nodes"
+                style="@style/NavItem">
 
-        <ListView
-            android:id="@+id/country_list"
-            android:layout_width="match_parent"
-            android:layout_height="360dp"
-            android:layout_marginTop="8dp" />
+                <ImageView
+                    android:id="@android:id/icon"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_public" />
 
-        <TextView
-            android:id="@+id/vg_note"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/vg_note"
-            android:textSize="13sp"
-            android:paddingTop="10dp" />
+                <TextView
+                    android:id="@android:id/text1"
+                    style="@style/NavLabel"
+                    android:text="@string/tab_nodes" />
+            </LinearLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/footer"
-            android:textSize="12sp"
-            android:paddingTop="14dp"
-            android:gravity="center" />
+            <LinearLayout
+                android:id="@+id/nav_stats"
+                style="@style/NavItem">
 
-    </LinearLayout>
-</ScrollView>
+                <ImageView
+                    android:id="@android:id/icon"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_chart" />
+
+                <TextView
+                    android:id="@android:id/text1"
+                    style="@style/NavLabel"
+                    android:text="@string/tab_stats" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/nav_config"
+                style="@style/NavItem">
+
+                <ImageView
+                    android:id="@android:id/icon"
+                    style="@style/NavIcon"
+                    android:src="@drawable/ic_tune" />
+
+                <TextView
+                    android:id="@android:id/text1"
+                    style="@style/NavLabel"
+                    android:text="@string/tab_config" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

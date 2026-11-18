@@ -1,21 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">وی‌پی‌ان ساده</string>
-    <string name="warp_connect">اتصال سریع (WARP)</string>
-    <string name="warp_disconnect">قطع اتصال WARP</string>
-    <string name="status_off">وضعیت: قطع</string>
-    <string name="status_on">وضعیت: متصل از طریق WARP</string>
-    <string name="status_connecting">وضعیت: در حال اتصال...</string>
-    <string name="vg_title">انتخاب کشور (سرورهای عمومی VPN Gate)</string>
-    <string name="vg_refresh">بروزرسانی لیست سرورها</string>
-    <string name="vg_note">با انتخاب هر کشور، بهترین سرور عمومی رایگان آن کشور گرفته می‌شود و کانفیگ آن برای اتصال به اپ رایگان «OpenVPN for Android» پاس داده می‌شود. تعداد سرورهای هر کشور به زمان و volunteers بستگی دارد.</string>
-    <string name="footer">ساخته‌شده با WireGuard و Cloudflare WARP - بدون نیاز به هیچ کانفیگی</string>
-    <string name="perm_denied">اجازه اتصال VPN داده نشد</string>
-    <string name="err_prefix">خطا: </string>
-    <string name="loading">در حال دریافت لیست سرورها...</string>
-    <string name="ovpn_ready">کانفیگ آماده شد - اتصال با اپ OpenVPN</string>
-    <string name="no_ovpn_app">اپ OpenVPN for Android نصب نیست. حالت سریع WARP را استفاده کن یا اپ OpenVPN را نصب کن.</string>
-    <string name="reg_fail">ساخت حساب WARP ناموفق بود. اینترنت را چک کن و دوباره تلاش کن.</string>
-    <string name="list_fail">دریافت لیست سرورها ناموفق بود. دوباره تلاش کن.</string>
-    <string name="list_loaded">لیست بروزرسانی شد</string>
+    <string name="app_name">SimpleVPN</string>
+    <string name="app_header">VAULT</string>
+    <string name="profile">Profile</string>
+    <string name="pill_protected">PROTECTED</string>
+    <string name="pill_secure">SECURE</string>
+
+    <!-- Tabs -->
+    <string name="tab_vault">Vault</string>
+    <string name="tab_nodes">Nodes</string>
+    <string name="tab_stats">Stats</string>
+    <string name="tab_config">Config</string>
+
+    <!-- States -->
+    <string name="state_connected">CONNECTED</string>
+    <string name="state_connecting">CONNECTING…</string>
+    <string name="state_disconnected">DISCONNECTED</string>
+    <string name="badge_active">WIRELESS TUNNEL ACTIVE</string>
+    <string name="badge_handshake">HANDSHAKE IN PROGRESS</string>
+    <string name="badge_offline">TUNNEL OFFLINE</string>
+    <string name="connect">Toggle VPN connection</string>
+    <string name="already_working">Still working on it…</string>
+    <string name="timer">Session timer</string>
+
+    <!-- Metrics -->
+    <string name="down">DOWN</string>
+    <string name="up">UP</string>
+    <string name="privacy">PRIVACY</string>
+    <string name="no_logs">NO-LOGS</string>
+    <string name="audited">WireGuard</string>
+    <string name="mbps">Mbps</string>
+    <string name="metric_idle">—</string>
+
+    <!-- Server card -->
+    <string name="default_city">Frankfurt</string>
+    <string name="default_code">DE</string>
+    <string name="card_sub_default">Lowest Ping • Optimal Route</string>
+    <string name="card_sub">%1$s • Optimal Route</string>
+    <string name="flag">Server flag</string>
+    <string name="change_server">Change server location</string>
+    <string name="ping_untested">— ms</string>
+    <string name="ping_dash">—</string>
+
+    <!-- Nodes screen -->
+    <string name="search">Search servers</string>
+    <string name="search_hint">Search city, country or protocol…</string>
+    <string name="node_count">8 NODES</string>
+    <string name="filter">Filter</string>
+    <string name="telemetry_synced">Live Telemetry: Regional RTT</string>
+    <string name="testing_now">Measuring regional latency…</string>
+    <string name="test_pings">Test All Pings</string>
+    <string name="fastest">Ranked by measured latency</string>
+    <string name="auto_select">REAL RTT</string>
+    <string name="rank_default">#1</string>
+    <string name="connected_tag">SELECTED</string>
+    <string name="footer_guard">REGIONAL REFERENCE PROBES ARMED</string>
+    <string name="footer_wireguard">WireGuard Tunnel</string>
+    <string name="select">Select node</string>
+    <string name="ping">Measured RTT</string>
+
+    <!-- Stats -->
+    <string name="stats_title">Session Telemetry</string>
+    <string name="session_time">SESSION TIME</string>
+    <string name="total_down">TOTAL DOWN</string>
+    <string name="total_up">TOTAL UP</string>
+    <string name="selected_node">SELECTED NODE</string>
+    <string name="stats_note">Measured through the active WireGuard tunnel. Values reset on every connect.</string>
+
+    <!-- Config -->
+    <string name="config_title">Configuration</string>
+    <string name="cfg_version">App version</string>
+    <string name="cfg_version_value">1.1</string>
+    <string name="cfg_engine">Tunnel engine</string>
+    <string name="cfg_engine_value">Cloudflare WARP + WireGuard</string>
+    <string name="cfg_dns">DNS inside tunnel</string>
+    <string name="cfg_dns_value">1.1.1.1 / 1.0.0.1</string>
+    <string name="cfg_alwayson">Always-on VPN</string>
+    <string name="cfg_alwayson_value">Enable in Android settings</string>
+    <string name="cfg_reset">Reset WARP account</string>
+    <string name="cfg_reset_value">Disconnect and re-register on next connect</string>
+    <string name="cfg_reset_done">WARP account reset. Reconnect to register a new one.</string>
+    <string name="cfg_settings_missing">VPN settings screen not found</string>
+    <string name="config_note">The tunnel is a free anonymous Cloudflare WARP registration created on this device. Exit location follows the nearest Cloudflare data center; the selected node is used for latency ranking and connection preferences.</string>
+
+    <!-- Errors -->
+    <string name="perm_denied">VPN permission denied</string>
+    <string name="reg_fail">Could not establish the tunnel. Check your internet and try again.</string>
 </resources>

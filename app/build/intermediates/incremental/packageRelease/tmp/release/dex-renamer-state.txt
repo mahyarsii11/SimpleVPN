@@ -1,0 +1,7 @@
+#Wed Nov 18 02:28:34 UTC 2026
+base.1=/home/z/my-project/repo-work/app/build/intermediates/global_synthetics_dex/release/classes.dex
+path.1=classes.dex
+base.0=/home/z/my-project/repo-work/app/build/intermediates/dex/release/mergeDexRelease/classes.dex
+renamed.1=classes2.dex
+renamed.0=classes.dex
+path.0=classes.dex

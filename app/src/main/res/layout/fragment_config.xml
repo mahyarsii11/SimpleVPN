@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:overScrollMode="never"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/space_grotesk_700"
+            android:letterSpacing="0.06"
+            android:text="@string/config_title"
+            android:textColor="@color/text_main"
+            android:textSize="16sp" />
+
+        <!-- Version -->
+        <LinearLayout style="@style/ConfigRow">
+            <ImageView
+                style="@style/ConfigIcon"
+                android:contentDescription="@string/cfg_version"
+                android:src="@drawable/ic_shield" />
+            <LinearLayout style="@style/ConfigTextCol">
+                <TextView style="@style/ConfigTitle" android:text="@string/cfg_version" />
+                <TextView
+                    android:id="@+id/cfg_version"
+                    style="@style/ConfigValue"
+                    android:text="@string/cfg_version_value" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Engine -->
+        <LinearLayout style="@style/ConfigRow">
+            <ImageView
+                style="@style/ConfigIcon"
+                android:contentDescription="@string/cfg_engine"
+                android:src="@drawable/ic_public" />
+            <LinearLayout style="@style/ConfigTextCol">
+                <TextView style="@style/ConfigTitle" android:text="@string/cfg_engine" />
+                <TextView style="@style/ConfigValue" android:text="@string/cfg_engine_value" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- DNS -->
+        <LinearLayout style="@style/ConfigRow">
+            <ImageView
+                style="@style/ConfigIcon"
+                android:contentDescription="@string/cfg_dns"
+                android:src="@drawable/ic_verified" />
+            <LinearLayout style="@style/ConfigTextCol">
+                <TextView style="@style/ConfigTitle" android:text="@string/cfg_dns" />
+                <TextView style="@style/ConfigValue" android:text="@string/cfg_dns_value" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Always-on -->
+        <LinearLayout
+            android:id="@+id/cfg_alwayson"
+            style="@style/ConfigRow"
+            android:foreground="@drawable/bg_card_press">
+            <ImageView
+                style="@style/ConfigIcon"
+                android:contentDescription="@string/cfg_alwayson"
+                android:src="@drawable/ic_timer" />
+            <LinearLayout style="@style/ConfigTextCol">
+                <TextView style="@style/ConfigTitle" android:text="@string/cfg_alwayson" />
+                <TextView style="@style/ConfigValue" android:text="@string/cfg_alwayson_value" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Reset -->
+        <LinearLayout
+            android:id="@+id/cfg_reset"
+            style="@style/ConfigRow"
+            android:foreground="@drawable/bg_card_press">
+            <ImageView
+                style="@style/ConfigIcon"
+                android:contentDescription="@string/cfg_reset"
+                android:src="@drawable/ic_power" />
+            <LinearLayout style="@style/ConfigTextCol">
+                <TextView
+                    style="@style/ConfigTitle"
+                    android:text="@string/cfg_reset"
+                    android:textColor="@color/amber" />
+                <TextView style="@style/ConfigValue" android:text="@string/cfg_reset_value" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:fontFamily="@font/jetbrains_mono_400"
+            android:lineSpacingExtra="4dp"
+            android:text="@string/config_note"
+            android:textColor="@color/outline"
+            android:textSize="10.5sp" />
+    </LinearLayout>
+</ScrollView>
