@@ -19,15 +19,16 @@ import java.util.concurrent.Executors
  * App-wide VPN state holder. Exactly one WARP tunnel; every fragment observes
  * the state through [addListener] callbacks posted on the main thread.
  *
- * Connection strategy (v1.4) — short, bounded, honest:
+ * Connection strategy (v1.5) — fast, bounded, honest:
  * 1. fast path: the identity + endpoint proven by a real handshake before,
- * 2. a brand-new on-device WARP registration, then up to 8 endpoints
- *    (3.5 s handshake window each),
- * 3. embedded-pool credentials when the registration API is unreachable.
+ * 2. a brand-new on-device WARP registration (or embedded pool credentials
+ *    when the API is unreachable), then endpoints with a 2.5 s handshake
+ *    window each.
  *
- * CONNECTED is only ever shown after a real WireGuard handshake, progress is
- * a calm percentage (no "ROUTE 7/28" marathon), the whole attempt is bounded
- * to about one minute, and disconnect cancels everything instantly.
+ * CONNECTED is only ever shown after a real WireGuard handshake. The whole
+ * attempt is hard-bounded to ~15 s with percent progress (no "ROUTE 7/28"
+ * marathon), disconnect cancels everything instantly, and every failure
+ * leaves a clear Persian message with one-tap retry.
  */
 object VpnController {
 
@@ -46,16 +47,16 @@ object VpnController {
         "162.159.192.1:2408",
         "188.114.96.1:2408",
         "162.159.193.1:2408",
-        "188.114.97.1:2408",
         "162.159.192.1:500",
+        "188.114.97.1:2408",
         "162.159.192.1:4500",
-        "162.159.192.1:1701",
+        "162.159.193.1:1701",
         "engage.cloudflareclient.com:2408"
     )
 
-    private const val FAST_WAIT_MS = 5000L
-    private const val ROUTE_WAIT_MS = 3500L
-    private const val POOL_ROUTES = 6
+    /** Hard deadline for the whole connect attempt (the user-facing promise). */
+    private const val CONNECT_BUDGET_MS = 15000L
+    private const val ROUTE_WAIT_MS = 2500L
 
     private const val PREFS_VAULT = "vault_prefs"
     private const val KEY_ENDPOINT = "working_endpoint"
@@ -195,15 +196,18 @@ object VpnController {
     }
 
     /**
-     * Three bounded phases; every phase ends in either CONNECTED or moves on.
+     * Bounded to [CONNECT_BUDGET_MS]: proven combo, then fresh registration
+     * (or pool when the API is unreachable), then a deadline-aware sweep.
      * Nothing is cached unless a handshake really happened.
      */
     private fun establish(appCtx: Context, myRun: Long) {
         fun stale() = myRun != runId || cancelRequested
         fun pct(p: Int) {
-            if (!stale()) setDetail(appCtx.getString(R.string.detail_pct, p))
+            if (!stale()) setDetail(appCtx.getString(R.string.detail_pct, p.coerceIn(1, 99)))
         }
         if (stale()) return
+
+        val budgetEnd = SystemClock.elapsedRealtime() + CONNECT_BUDGET_MS
 
         // Phase A — handshake-proven identity + endpoint from a previous connect
         val verified = WarpManager.getVerified(appCtx)
@@ -216,7 +220,7 @@ object VpnController {
             }
             if (cfg != null) {
                 val ok = sweep(appCtx, myRun, cfg,
-                    listOf(verified.second), 2, 6, FAST_WAIT_MS)
+                    listOf(verified.second), 2, 8, ROUTE_WAIT_MS, budgetEnd)
                 if (ok) return
                 if (stale()) { safeDown(); return }
                 // That combo is dead on this network now — never trust it again.
@@ -224,31 +228,28 @@ object VpnController {
             }
         }
 
-        // Phase B — brand-new anonymous identity from the WARP registration API
-        pct(8)
-        var regCfg: Config? = null
-        try {
-            regCfg = WarpManager.freshConfig { a, t -> pct(8 + 2 * a) }
+        // Phase B — brand-new identity from the WARP registration API; when the
+        // API is unreachable, fall straight to embedded pool credentials.
+        pct(10)
+        val cfg: Config? = try {
+            WarpManager.freshConfig(
+                progress = { a, t -> pct(10 + 8 * a) },
+                maxVersions = 2
+            )
         } catch (e: Exception) {
             lastRouteError = "register: " + (e.message ?: e.javaClass.simpleName)
+            try {
+                WarpManager.poolConfig(appCtx)
+            } catch (e2: Exception) {
+                lastRouteError = (lastRouteError ?: "") + " | pool: " +
+                    (e2.message ?: e2.javaClass.simpleName)
+                null
+            }
         }
-        if (regCfg != null) {
-            val ok = sweep(appCtx, myRun, regCfg, SWEEP_ROUTES, 14, 70, ROUTE_WAIT_MS)
+        if (cfg != null) {
+            val ok = sweep(appCtx, myRun, cfg, SWEEP_ROUTES, 30, 92, ROUTE_WAIT_MS, budgetEnd)
             if (ok) return
             if (stale()) { safeDown(); return }
-        }
-
-        // Phase C — embedded pool credentials (registration API unreachable)
-        pct(74)
-        try {
-            val pool = WarpManager.poolConfig(appCtx)
-            val ok = sweep(appCtx, myRun, pool,
-                SWEEP_ROUTES.take(POOL_ROUTES), 74, 92, ROUTE_WAIT_MS)
-            if (ok) return
-            if (stale()) { safeDown(); return }
-        } catch (e: Exception) {
-            lastRouteError = (lastRouteError ?: "") + " | pool: " +
-                (e.message ?: e.javaClass.simpleName)
         }
 
         if (!stale()) fail(appCtx, appCtx.getString(R.string.handshake_fail))
@@ -256,7 +257,9 @@ object VpnController {
 
     /**
      * Tries each endpoint with the same credentials, showing a percentage
-     * between [lo] and [hi]. Returns true when the tunnel reached CONNECTED.
+     * between [lo] and [hi]. The sweep stops at [budgetEnd] and each route
+     * gets at most [waitMs] for its first handshake. Returns true when the
+     * tunnel reached CONNECTED.
      */
     private fun sweep(
         appCtx: Context,
@@ -265,12 +268,15 @@ object VpnController {
         routes: List<String>,
         lo: Int,
         hi: Int,
-        waitMs: Long
+        waitMs: Long,
+        budgetEnd: Long
     ): Boolean {
         fun stale() = myRun != runId || cancelRequested
         val pubKey = cfg.getPeers()[0].getPublicKey()
         for ((i, ep) in routes.withIndex()) {
             if (stale()) return false
+            val remaining = budgetEnd - SystemClock.elapsedRealtime()
+            if (remaining < 1200) return false // out of budget — report fast
             setDetail(appCtx.getString(R.string.detail_pct,
                 lo + (hi - lo) * i / routes.size))
             val text = WarpManager.withEndpointText(cfg, ep)
@@ -282,12 +288,13 @@ object VpnController {
                     (e.message?.let { m -> ": ${m.take(140)}" } ?: "")
                 continue // unreachable endpoint / DNS failure / service problem
             }
-            if (verifyHandshake(pubKey, waitMs)) {
+            val wait = minOf(waitMs, remaining)
+            if (verifyHandshake(pubKey, wait)) {
                 if (stale()) { safeDown(); return false }
                 onConnected(appCtx, text, ep)
                 return true
             }
-            lastRouteError = "[$ep] no handshake in ${waitMs / 1000}s"
+            lastRouteError = "[$ep] no handshake in ${wait / 1000}s"
             safeDown()
         }
         return false
@@ -336,10 +343,7 @@ object VpnController {
         statusDetail = null
         notifyChanged()
         ui.post {
-            val detail = lastRouteError
-            val text = if (detail != null) "${appCtx.getString(R.string.reg_fail)}\n\n$detail"
-                       else appCtx.getString(R.string.reg_fail)
-            Toast.makeText(appCtx, text, Toast.LENGTH_LONG).show()
+            Toast.makeText(appCtx, appCtx.getString(R.string.toast_fail), Toast.LENGTH_LONG).show()
         }
     }
 

@@ -3,10 +3,11 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-// v1.4: verified-only credential cache (fixes dead-config poisoning), fresh
-// on-device registration per connect, 8 fast routes x 3.5s, percent progress.
-// Same debug keystore as v1.0–v1.3 so it installs as an update.
-def keystoreFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
+// v2.0: NEW signing keystore (old debug keystore lost in sandbox reset) —
+// users must uninstall any previous version before installing this one.
+// v1.5 engine: 15s hard connect budget (2.5s handshake windows), instant pool
+// fallback, Persian user messages, success-ordered fast routes.
+def keystoreFile = file("/home/z/my-project/toolchain/keystore/simplevpn.keystore")
 
 android {
     namespace 'com.mahyar.simplevpn'
@@ -16,16 +17,16 @@ android {
         applicationId "com.mahyar.simplevpn"
         minSdk 24
         targetSdk 34
-        versionCode 5
-        versionName "1.4"
+        versionCode 10
+        versionName "2.0"
     }
 
     signingConfigs {
         release {
             storeFile keystoreFile
-            storePassword "android"
-            keyAlias "androiddebugkey"
-            keyPassword "android"
+            storePassword "simplevpn123"
+            keyAlias "simplevpn"
+            keyPassword "simplevpn123"
         }
     }
 

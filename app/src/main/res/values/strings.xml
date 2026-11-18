@@ -16,7 +16,7 @@
     <string name="state_connected">CONNECTED</string>
     <string name="state_connecting">CONNECTING…</string>
     <string name="state_disconnected">DISCONNECTED</string>
-    <string name="state_failed">FAILED — TAP TO RETRY</string>
+    <string name="state_failed">اتصال ناموفق — برای تلاش مجدد لمس کن</string>
     <string name="badge_active">WIRELESS TUNNEL ACTIVE</string>
     <string name="badge_handshake">HANDSHAKE IN PROGRESS</string>
     <string name="badge_offline">TUNNEL OFFLINE</string>
@@ -71,7 +71,7 @@
     <!-- Config -->
     <string name="config_title">Configuration</string>
     <string name="cfg_version">App version</string>
-    <string name="cfg_version_value">1.4</string>
+    <string name="cfg_version_value">2.0</string>
     <string name="cfg_engine">Tunnel engine</string>
     <string name="cfg_engine_value">Cloudflare WARP + WireGuard</string>
     <string name="cfg_dns">DNS inside tunnel</string>
@@ -86,12 +86,13 @@
 
     <!-- Errors -->
     <string name="perm_denied">VPN permission denied</string>
-    <string name="reg_fail">Could not establish the tunnel. Check your internet and try again.</string>
-    <string name="handshake_fail">No Cloudflare route answered the handshake. Switch between Wi-Fi and mobile data, then tap again — each try registers a fresh identity.</string>
+    <string name="reg_fail">اتصال برقرار نشد. اینترنت را بررسی کن و دوباره امتحان کن.</string>
+    <string name="toast_fail">اتصال برقرار نشد. بین Wi-Fi و اینترنت سیم‌کارتی جابه‌جا شو و دوباره امتحان کن.</string>
+    <string name="handshake_fail">هیچ مسیر وارپ جواب نداد. بین Wi-Fi و اینترنت سیم‌کارتی جابه‌جا شو و دوباره امتحان کن.</string>
 
     <!-- Connect progress -->
     <string name="detail_registering">REGISTERING…</string>
     <string name="detail_reg">REGISTERING %1$d/%2$d…</string>
     <string name="detail_route">ROUTE %1$d/%2$d…</string>
-    <string name="detail_pct">ESTABLISHING… %1$d%%</string>
+    <string name="detail_pct">در حال اتصال… %1$d%%</string>
 </resources>

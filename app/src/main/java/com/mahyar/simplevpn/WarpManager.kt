@@ -41,7 +41,7 @@ object WarpManager {
     private const val UA = "1.1.1.1/6.26"
     private val API_VERSIONS = listOf("v0i1707", "v0a2158", "v0a448")
     private const val PEER_FALLBACK_KEY = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
-    private const val TIMEOUT_MS = 6000
+    private const val TIMEOUT_MS = 2500
 
     private val prefsLock = Any()
 
@@ -87,8 +87,11 @@ object WarpManager {
      * Never persisted here — the controller stores it only after a verified
      * handshake. Throws with the last API error when all versions fail.
      */
-    fun freshConfig(progress: (Int, Int) -> Unit = { _, _ -> }): Config {
-        val reg = register(progress)
+    fun freshConfig(
+        progress: (Int, Int) -> Unit = { _, _ -> },
+        maxVersions: Int = API_VERSIONS.size
+    ): Config {
+        val reg = register(progress, maxVersions)
         return parse(buildConfigText(reg.v4, reg.v6, reg.peerPub, reg.privKey))
     }
 
@@ -135,7 +138,7 @@ object WarpManager {
         val privKey: String
     )
 
-    private fun register(progress: (Int, Int) -> Unit): WarpReg {
+    private fun register(progress: (Int, Int) -> Unit, maxVersions: Int): WarpReg {
         val kp = KeyPair()
         val pub = kp.publicKey.toBase64()
         val body = JSONObject().apply {
@@ -150,8 +153,9 @@ object WarpManager {
             put("warp_enabled", true as Any)
         }
         var lastErr = "unknown"
-        for ((i, v) in API_VERSIONS.withIndex()) {
-            progress(i + 1, API_VERSIONS.size)
+        val versions = API_VERSIONS.take(maxVersions.coerceIn(1, API_VERSIONS.size))
+        for ((i, v) in versions.withIndex()) {
+            progress(i + 1, versions.size)
             try {
                 val (code, text) = post("https://api.cloudflareclient.com/$v/reg", body.toString())
                 if (code == 200 || code == 201) {
