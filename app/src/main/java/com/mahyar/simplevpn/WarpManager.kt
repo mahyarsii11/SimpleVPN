@@ -17,16 +17,26 @@ import java.util.TimeZone
 import java.util.UUID
 
 /**
- * Provides the WireGuard configuration. Preference order:
- * 1. config cached from a previous successful registration,
- * 2. live anonymous Cloudflare WARP registration (short 8 s timeouts),
- * 3. credentials embedded in the APK — so the very first connect still
- *    works even when the WARP registration API is unreachable.
+ * Provides the WireGuard configuration for the WARP tunnel.
+ *
+ * v1.4 credential policy (fixes "nothing ever connects"):
+ * - A credential set is ONLY persisted after a real WireGuard handshake has
+ *   been observed on the device ("verified" cache). v1.2/v1.3 cached every
+ *   registration up front — including dead embedded-pool credentials — so
+ *   one bad config poisoned every future connect attempt.
+ * - Every connect that cannot use the verified cache registers a brand-new
+ *   anonymous WARP account and takes the peer public key straight from the
+ *   API response instead of trusting a hard-coded fallback.
+ * - The embedded pool is a last resort for networks where the registration
+ *   API itself is unreachable.
  */
 object WarpManager {
 
     private const val PREFS = "warp_prefs"
-    private const val KEY_CONFIG = "wg_config"
+    /** Unverified cache written by v1.2/v1.3 — abandoned, cleared on reset. */
+    private const val KEY_LEGACY_CONFIG = "wg_config"
+    private const val KEY_VERIFIED_CFG = "verified_config"
+    private const val KEY_VERIFIED_EP = "verified_endpoint"
     private const val KEY_POOL_IDX = "pool_idx"
     private const val UA = "1.1.1.1/6.26"
     private val API_VERSIONS = listOf("v0i1707", "v0a2158", "v0a448")
@@ -38,51 +48,68 @@ object WarpManager {
     private fun prefs(ctx: Context) =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    fun hasRegistration(ctx: Context): Boolean =
-        prefs(ctx).getString(KEY_CONFIG, null) != null
+    fun parse(text: String): Config =
+        Config.parse(BufferedReader(StringReader(text)))
 
-    fun reset(ctx: Context) {
-        prefs(ctx).edit().remove(KEY_CONFIG).apply()
+    /** Config text + endpoint proven by a real handshake on this device, or null. */
+    fun getVerified(ctx: Context): Pair<String, String>? {
+        val text = prefs(ctx).getString(KEY_VERIFIED_CFG, null) ?: return null
+        val ep = prefs(ctx).getString(KEY_VERIFIED_EP, null) ?: return null
+        return Pair(text, ep)
     }
 
-    fun cachedConfig(ctx: Context): Config? {
-        val saved = prefs(ctx).getString(KEY_CONFIG, null) ?: return null
-        return try {
-            Config.parse(BufferedReader(StringReader(saved)))
-        } catch (_: Exception) {
-            prefs(ctx).edit().remove(KEY_CONFIG).apply()
-            null
-        }
+    fun markVerified(ctx: Context, configText: String, endpoint: String) {
+        prefs(ctx).edit()
+            .putString(KEY_VERIFIED_CFG, configText)
+            .putString(KEY_VERIFIED_EP, endpoint)
+            .apply()
+    }
+
+    fun clearVerified(ctx: Context) {
+        prefs(ctx).edit()
+            .remove(KEY_VERIFIED_CFG)
+            .remove(KEY_VERIFIED_EP)
+            .apply()
+    }
+
+    /** Drops every stored credential (verified cache + legacy v1.2 cache). */
+    fun reset(ctx: Context) {
+        prefs(ctx).edit()
+            .remove(KEY_VERIFIED_CFG)
+            .remove(KEY_VERIFIED_EP)
+            .remove(KEY_LEGACY_CONFIG)
+            .remove(KEY_POOL_IDX)
+            .apply()
     }
 
     /**
-     * Returns a working WireGuard config, registering a new WARP account if
-     * needed and falling back to the embedded pool when the API is blocked.
-     * [progress] receives (attempt, total) while the live API is tried.
+     * Registers a brand-new anonymous WARP account and builds its config.
+     * Never persisted here — the controller stores it only after a verified
+     * handshake. Throws with the last API error when all versions fail.
      */
-    fun getOrCreateConfig(ctx: Context, progress: (Int, Int) -> Unit = { _, _ -> }): Config {
-        cachedConfig(ctx)?.let { return it }
-        var lastErr = "unknown"
-        val reg = try {
-            register(progress)
-        } catch (e: Exception) {
-            lastErr = e.message ?: e.javaClass.simpleName
-            null
-        }
-        val text = if (reg != null) {
-            buildConfigText(reg.v4, reg.v6, reg.peerPub, reg.privKey)
-        } else {
-            val e = pickPoolEntry(ctx)
-                ?: throw RuntimeException("no credentials available: $lastErr")
-            buildConfigText(e.v4, e.v6, e.peerPub, e.privKey)
-        }
-        prefs(ctx).edit().putString(KEY_CONFIG, text).apply()
-        return Config.parse(BufferedReader(StringReader(text)))
+    fun freshConfig(progress: (Int, Int) -> Unit = { _, _ -> }): Config {
+        val reg = register(progress)
+        return parse(buildConfigText(reg.v4, reg.v6, reg.peerPub, reg.privKey))
+    }
+
+    /**
+     * Last-resort config from credentials embedded in the APK, used only when
+     * the registration API is unreachable from the user's network.
+     */
+    fun poolConfig(ctx: Context): Config {
+        val e = pickPoolEntry(ctx)
+            ?: throw RuntimeException("no embedded credentials available")
+        return parse(buildConfigText(e.v4, e.v6, e.peerPub, e.privKey))
     }
 
     /** Rebuilds the config with a different Endpoint (used for route rotation). */
-    fun withEndpoint(cfg: Config, endpoint: String): Config {
+    fun withEndpoint(cfg: Config, endpoint: String): Config =
+        parse(withEndpointText(cfg, endpoint))
+
+    /** Same as [withEndpoint] but returns the config text (for the verified cache). */
+    fun withEndpointText(cfg: Config, endpoint: String): String {
         val iface = cfg.getInterface()
+        val peer = cfg.getPeers()[0]
         val sb = StringBuilder()
         sb.append("[Interface]\n")
         sb.append("PrivateKey = ")
@@ -92,13 +119,11 @@ object WarpManager {
         }
         sb.append("DNS = 1.1.1.1, 1.0.0.1\n")
         sb.append("MTU = 1280\n\n[Peer]\n")
-        val peer = cfg.getPeers()[0]
         sb.append("PublicKey = ").append(peer.getPublicKey().toBase64()).append('\n')
-        sb.append("AllowedIPs = 0.0.0.0/0\n")
-        sb.append("AllowedIPs = ::/0\n")
+        sb.append("AllowedIPs = 0.0.0.0/0, ::/0\n")
         sb.append("Endpoint = ").append(endpoint).append('\n')
         sb.append("PersistentKeepalive = 25\n")
-        return Config.parse(BufferedReader(StringReader(sb.toString())))
+        return sb.toString()
     }
 
     // ---------- internals ----------
@@ -189,8 +214,7 @@ object WarpManager {
         sb.append("DNS = 1.1.1.1, 1.0.0.1\n")
         sb.append("MTU = 1280\n\n[Peer]\n")
         sb.append("PublicKey = ").append(peerPub).append('\n')
-        sb.append("AllowedIPs = 0.0.0.0/0\n")
-        sb.append("AllowedIPs = ::/0\n")
+        sb.append("AllowedIPs = 0.0.0.0/0, ::/0\n")
         sb.append("Endpoint = engage.cloudflareclient.com:2408\n")
         sb.append("PersistentKeepalive = 25\n")
         return sb.toString()

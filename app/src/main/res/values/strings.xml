@@ -71,7 +71,7 @@
     <!-- Config -->
     <string name="config_title">Configuration</string>
     <string name="cfg_version">App version</string>
-    <string name="cfg_version_value">1.2</string>
+    <string name="cfg_version_value">1.4</string>
     <string name="cfg_engine">Tunnel engine</string>
     <string name="cfg_engine_value">Cloudflare WARP + WireGuard</string>
     <string name="cfg_dns">DNS inside tunnel</string>
@@ -87,10 +87,11 @@
     <!-- Errors -->
     <string name="perm_denied">VPN permission denied</string>
     <string name="reg_fail">Could not establish the tunnel. Check your internet and try again.</string>
-    <string name="handshake_fail">Could not reach any Cloudflare route. Try switching between Wi-Fi and mobile data, then connect again.</string>
+    <string name="handshake_fail">No Cloudflare route answered the handshake. Switch between Wi-Fi and mobile data, then tap again — each try registers a fresh identity.</string>
 
     <!-- Connect progress -->
     <string name="detail_registering">REGISTERING…</string>
     <string name="detail_reg">REGISTERING %1$d/%2$d…</string>
     <string name="detail_route">ROUTE %1$d/%2$d…</string>
+    <string name="detail_pct">ESTABLISHING… %1$d%%</string>
 </resources>

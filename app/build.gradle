@@ -3,9 +3,9 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-// v1.3: 28-route rotation across all WARP ranges (incl. 188.114.x and IPv6),
-// per-route diagnostics, 6s registration timeouts.
-// Same debug keystore as v1.0–v1.2 so it installs as an update.
+// v1.4: verified-only credential cache (fixes dead-config poisoning), fresh
+// on-device registration per connect, 8 fast routes x 3.5s, percent progress.
+// Same debug keystore as v1.0–v1.3 so it installs as an update.
 def keystoreFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
 
 android {
@@ -16,8 +16,8 @@ android {
         applicationId "com.mahyar.simplevpn"
         minSdk 24
         targetSdk 34
-        versionCode 4
-        versionName "1.3"
+        versionCode 5
+        versionName "1.4"
     }
 
     signingConfigs {
